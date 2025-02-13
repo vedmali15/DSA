@@ -1,114 +1,84 @@
 #include <iostream>
+#define MAX_VALUE 65536
 using namespace std;
 
-class Node {
-public:
-    int data;
-    Node *left, *right;
-    bool rightThread;
-
-    Node(int val) {
-        data = val;
-        left = right = nullptr;
-        rightThread = false;
-    }
+class N { 
+   public:
+      int k;
+      N *l, *r;
+      bool leftTh, rightTh;
 };
 
-class ThreadedBST {
-public:
-    Node *root;
+class TBT {
+   private:
+      N *root;
+   public:
+      TBT() { 
+         root = new N();
+         root->r = root->l = root;
+         root->leftTh = true;
+         root->k = MAX_VALUE;
+      }
 
-    ThreadedBST() {
-        root = nullptr;
-    }
+      void insert(int key) {
+         N *p = root;
+         for (;;) {
+            if (p->k < key) { 
+               if (p->rightTh) break;
+               p = p->r;
+            } 
+            else if (p->k > key) { 
+               if (p->leftTh) break;
+               p = p->l;
+            } 
+            else return;
+         }
 
-    void insert(int key) {
-        Node *ptr = root, *par = nullptr;
+         N *temp = new N();
+         temp->k = key;
+         temp->rightTh = temp->leftTh = true;
 
-        while (ptr) {
-            if (key == ptr->data)
-                return;
-            par = ptr;
-            if (key < ptr->data)
-                ptr = ptr->left;
-            else {
-                if (ptr->rightThread)
-                    break;
-                ptr = ptr->right;
+         if (p->k < key) {
+            temp->r = p->r;
+            temp->l = p;
+            p->r = temp;
+            p->rightTh = false;
+         } 
+         else {
+            temp->r = p;
+            temp->l = p->l;
+            p->l = temp;
+            p->leftTh = false;
+         }
+      }
+
+      void inorder() { 
+         N *temp = root, *p;
+         for (;;) {
+            p = temp;
+            temp = temp->r;
+            if (!p->rightTh) {
+               while (!temp->leftTh) {
+                  temp = temp->l;
+               }
             }
-        }
-
-        Node *newNode = new Node(key);
-        if (!root)
-            root = newNode;
-        else if (key < par->data)
-            par->left = newNode;
-        else {
-            newNode->right = par->right;
-            newNode->rightThread = par->rightThread;
-            par->right = newNode;
-            par->rightThread = false;
-        }
-    }
-
-    Node *leftMost(Node *node) {
-        while (node && node->left)
-            node = node->left;
-        return node;
-    }
-
-    void inorder() {
-        Node *cur = leftMost(root);
-        while (cur) {
-            cout << cur->data << " ";
-            if (cur->rightThread)
-                cur = cur->right;
-            else
-                cur = leftMost(cur->right);
-        }
-        cout << endl;
-    }
-
-    void preorder(Node *node) {
-        while (node) {
-            cout << node->data << " ";
-            if (node->left)
-                node = node->left;
-            else if (!node->rightThread)
-                node = node->right;
-            else
-                node = nullptr;
-        }
-        cout << endl;
-    }
+            if (temp == root) break;
+            cout << temp->k << " ";
+         }
+         cout << endl;
+      }
 };
 
 int main() {
-    ThreadedBST t;
-    int n, val, choice;
-
-    cout << "Enter number of elements: ";
-    cin >> n;
-    cout << "Enter elements: ";
-    for (int i = 0; i < n; i++) {
-        cin >> val;
-        t.insert(val);
-    }
-
-    do {
-        cout << "\n1. Inorder Traversal\n2. Preorder Traversal\n3. Exit\nEnter choice: ";
-        cin >> choice;
-        switch (choice) {
-            case 1: 
-                cout << "Inorder Traversal: ";
-                t.inorder();
-                break;
-            case 2: 
-                cout << "Preorder Traversal: ";
-                t.preorder(t.root);
-                break;
-        }
-    } while (choice != 3);
-
-    return 0;
+   TBT tbt;
+   int n, key;
+   cout << "Enter number of elements: ";
+   cin >> n;
+   cout << "Enter elements: ";
+   for (int i = 0; i < n; i++) {
+      cin >> key;
+      tbt.insert(key);
+   }
+   cout << "Inorder Traversal: ";
+   tbt.inorder();
 }
